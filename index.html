@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DermBot — AI Skin Coach</title>
+<meta name="description" content="AI-powered skin analysis and personalized skincare guidance for South Asia. Understand your acne, oily skin, and more in seconds.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Epilogue:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f7f5f0;--bg2:#ffffff;--bg3:#f0ede6;
+  --ink:#1a1814;--ink2:#5c5a54;--ink3:#9e9b93;
+  --accent:#2d6a4f;--accent-lt:#d8f3e3;--accent2:#1b4332;
+  --warm:#e76f51;--warm-lt:#fde8e1;
+  --gold:#b5882d;--gold-lt:#fef3db;
+  --border:rgba(26,24,20,0.1);--border2:rgba(26,24,20,0.06);
+  --r:14px;--r-sm:8px;
+  --shadow:0 1px 3px rgba(26,24,20,0.08),0 4px 16px rgba(26,24,20,0.04);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Epilogue',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.4}
+
+/* ── NAVBAR ── */
+nav{display:flex;align-items:center;justify-content:space-between;padding:16px 48px;border-bottom:1px solid var(--border);background:rgba(247,245,240,0.92);backdrop-filter:blur(20px);position:sticky;top:0;z-index:200}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:var(--ink);letter-spacing:-0.5px;display:flex;align-items:center;gap:8px;text-decoration:none}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.nav-links{display:flex;align-items:center;gap:32px}
+.nav-links a{font-size:13px;color:var(--ink2);text-decoration:none;transition:color .15s;font-weight:400}
+.nav-links a:hover{color:var(--ink)}
+.nav-right{display:flex;align-items:center;gap:10px}
+.scan-badge{font-size:12px;color:var(--ink2);background:var(--bg3);padding:5px 12px;border-radius:99px;border:1px solid var(--border)}
+.scan-badge span{color:var(--accent);font-weight:600}
+.btn-upgrade{font-size:12px;font-weight:500;color:#fff;background:var(--accent);padding:7px 18px;border-radius:99px;cursor:pointer;border:none;font-family:'Epilogue',sans-serif;transition:all .15s}
+.btn-upgrade:hover{background:var(--accent2)}
+.hamburger{display:none;flex-direction:column;gap:4px;cursor:pointer;padding:4px}
+.hamburger span{width:20px;height:2px;background:var(--ink);border-radius:2px;transition:all .2s}
+.mobile-menu{display:none;flex-direction:column;gap:0;background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 0}
+.mobile-menu a{font-size:14px;color:var(--ink2);text-decoration:none;padding:12px 24px;border-bottom:1px solid var(--border2)}
+.mobile-menu a:last-child{border-bottom:none}
+.mobile-menu.open{display:flex}
+
+/* ── HERO ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.fu{animation:fadeUp 0.5s ease both}
+.fu2{animation:fadeUp 0.5s 0.1s ease both}
+.fu3{animation:fadeUp 0.5s 0.2s ease both}
+.fu4{animation:fadeUp 0.5s 0.3s ease both}
+
+.hero{max-width:1060px;margin:0 auto;padding:72px 48px 52px;display:grid;grid-template-columns:1fr 400px;gap:64px;align-items:center}
+.eyebrow{display:inline-flex;align-items:center;gap:7px;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin-bottom:20px;font-weight:500}
+.eyebrow-dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(38px,4.2vw,58px);font-weight:800;line-height:1.06;letter-spacing:-1.5px;margin-bottom:18px}
+.hero h1 .green{color:var(--accent)}
+.hero-p{font-size:15px;color:var(--ink2);line-height:1.75;margin-bottom:30px;font-weight:300;max-width:440px}
+.hero-stats{display:flex;gap:28px;margin-bottom:30px}
+.hs-num{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:var(--ink)}
+.hs-lbl{font-size:11px;color:var(--ink3);margin-top:2px}
+.hero-btns{display:flex;gap:10px;flex-wrap:wrap}
+.btn-main{font-size:14px;font-weight:500;color:#fff;background:var(--accent);padding:13px 26px;border-radius:99px;cursor:pointer;border:none;font-family:'Epilogue',sans-serif;transition:all .2s;display:inline-flex;align-items:center;gap:8px;text-decoration:none}
+.btn-main:hover{background:var(--accent2);transform:translateY(-1px)}
+.btn-ghost{font-size:14px;color:var(--ink);background:transparent;padding:13px 22px;border-radius:99px;cursor:pointer;border:1px solid var(--border);font-family:'Epilogue',sans-serif;transition:all .2s;text-decoration:none}
+.btn-ghost:hover{border-color:var(--ink2);background:var(--bg3)}
+
+/* ── HERO VISUAL ── */
+.hv{background:var(--bg2);border-radius:20px;border:1px solid var(--border);padding:22px;box-shadow:var(--shadow)}
+.hv-lbl{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:14px;font-weight:500}
+.hv-bars{display:flex;flex-direction:column;gap:9px;margin-bottom:18px}
+.hv-bar-row{display:flex;align-items:center;gap:10px}
+.hv-bar-lbl{font-size:12px;color:var(--ink2);width:88px;flex-shrink:0}
+.hv-track{flex:1;height:5px;background:var(--bg3);border-radius:99px;overflow:hidden}
+.hv-fill{height:100%;border-radius:99px;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+.hv-div{height:1px;background:var(--border2);margin:14px 0}
+.hv-row{display:flex;align-items:center;justify-content:space-between}
+.hv-cond{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--ink)}
+.hv-sev{font-size:11px;padding:3px 10px;border-radius:99px;background:var(--accent-lt);color:var(--accent);font-weight:500}
+.hv-ings{display:flex;flex-wrap:wrap;gap:5px;margin-top:12px}
+.hv-ing{font-size:11px;padding:3px 9px;border-radius:99px;background:var(--bg3);color:var(--ink2);border:1px solid var(--border)}
+
+/* ── HOW IT WORKS ── */
+.how{max-width:1060px;margin:0 auto;padding:60px 48px}
+.section-h{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;letter-spacing:-0.5px;margin-bottom:8px}
+.section-sub{font-size:14px;color:var(--ink2);margin-bottom:36px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.step-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:22px;transition:all .2s}
+.step-card:hover{border-color:rgba(45,106,79,0.3);transform:translateY(-2px)}
+.step-num{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--accent-lt);margin-bottom:10px}
+.step-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:600;margin-bottom:6px}
+.step-desc{font-size:13px;color:var(--ink2);line-height:1.65}
+
+/* ── DIVIDER ── */
+.divider{max-width:1060px;margin:0 auto;padding:0 48px}<br>.divider hr{border:none;border-top:1px solid var(--border)}
+
+/* ── SCAN AREA ── */
+.scan{max-width:700px;margin:0 auto;padding:52px 48px 80px}
+.scan-title{font-family:'Syne',sans-serif;font-size:26px;font-weight:700;letter-spacing:-0.5px;margin-bottom:6px}
+.scan-sub{font-size:14px;color:var(--ink2);margin-bottom:28px;line-height:1.6}
+
+.upload-zone{border:1.5px dashed var(--border);border-radius:var(--r);padding:42px 24px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg2);position:relative}
+.upload-zone:hover,.upload-zone.over{border-color:var(--accent);background:rgba(45,106,79,0.02)}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.up-icon{width:46px;height:46px;border-radius:50%;background:var(--accent-lt);display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+.up-icon svg{width:20px;height:20px;stroke:var(--accent)}
+.up-t{font-family:'Syne',sans-serif;font-size:15px;font-weight:600;margin-bottom:5px}
+.up-s{font-size:13px;color:var(--ink2)}
+.up-fmt{font-size:11px;color:var(--ink3);margin-top:5px}
+
+#prev-wrap{display:none;margin-top:12px}
+#prev-img{width:100%;max-height:240px;object-fit:cover;border-radius:var(--r-sm);border:1px solid var(--border)}
+.prev-change{font-size:12px;color:var(--accent);cursor:pointer;margin-top:7px;display:inline-block;text-decoration:underline}
+
+.form-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-top:14px}
+.fc-title{font-size:11px;letter-spacing:0.07em;text-transform:uppercase;color:var(--ink3);margin-bottom:12px;font-weight:500}
+.tags-row{display:flex;flex-wrap:wrap;gap:6px}
+.qtag{font-size:12px;padding:6px 13px;border-radius:99px;border:1px solid var(--border);color:var(--ink2);cursor:pointer;transition:all .15s;user-select:none}
+.qtag:hover,.qtag.on{border-color:var(--accent);color:var(--accent);background:var(--accent-lt)}
+.sym-ta{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 13px;font-size:13px;color:var(--ink);font-family:'Epilogue',sans-serif;resize:none;height:78px;outline:none;transition:border-color .2s;margin-top:10px}
+.sym-ta:focus{border-color:var(--accent)}
+.sym-ta::placeholder{color:var(--ink3)}
+
+.analyze-btn{width:100%;margin-top:18px;background:var(--accent);color:#fff;border:none;border-radius:99px;padding:15px;font-size:15px;font-weight:500;cursor:pointer;font-family:'Epilogue',sans-serif;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.analyze-btn:hover:not(:disabled){background:var(--accent2);transform:translateY(-1px)}
+.analyze-btn:disabled{opacity:0.35;cursor:not-allowed;transform:none}
+
+/* ── LOADING ── */
+#loading{display:none;text-align:center;padding:48px 0}
+.load-ring{width:42px;height:42px;border-radius:50%;border:2px solid var(--border);border-top-color:var(--accent);animation:spin .8s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.load-steps{margin-top:14px;display:flex;flex-direction:column;gap:5px}
+.load-step{font-size:12px;color:var(--ink3);animation:pulse 1.6s ease infinite}
+.load-step.active{color:var(--accent);animation:none;font-weight:500}
+
+/* ── RESULT ── */
+#result{display:none;margin-top:26px}
+.res-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow)}
+.res-top{padding:18px 22px;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.res-cond{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;letter-spacing:-0.3px}
+.sev-pill{font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;padding:4px 13px;border-radius:99px}
+.sev-mild{background:var(--accent-lt);color:var(--accent)}
+.sev-moderate{background:var(--gold-lt);color:var(--gold)}
+.sev-severe{background:var(--warm-lt);color:var(--warm)}
+.res-body{padding:22px;display:grid;gap:18px}
+.rs-lbl{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink3);margin-bottom:7px;font-weight:500}
+.rs-text{font-size:14px;color:var(--ink2);line-height:1.75}
+.rg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rc{background:var(--bg);border-radius:var(--r-sm);padding:13px;border:1px solid var(--border2)}
+.rc-t{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);font-weight:600;margin-bottom:9px}
+.step-item{display:flex;gap:8px;align-items:flex-start;margin-bottom:7px;font-size:13px;color:var(--ink2);line-height:1.4}
+.sn{width:18px;height:18px;border-radius:50%;background:var(--accent-lt);color:var(--accent);font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.ing-row{display:flex;flex-wrap:wrap;gap:6px}
+.ing{font-size:12px;padding:4px 11px;border-radius:99px;background:var(--accent-lt);color:var(--accent);border:1px solid rgba(45,106,79,0.2)}
+.ing-bad{background:var(--warm-lt);color:var(--warm);border-color:rgba(231,111,81,0.2)}
+.doc-box{background:var(--gold-lt);border:1px solid rgba(181,136,45,0.25);border-radius:var(--r-sm);padding:13px 15px;font-size:13px;color:var(--gold);line-height:1.6;display:flex;gap:9px;align-items:flex-start}
+.res-disc{font-size:11px;color:var(--ink3);text-align:center;margin-top:4px;line-height:1.7}
+.try-again{width:100%;margin-top:10px;background:transparent;color:var(--accent);border:1px solid var(--border);border-radius:99px;padding:12px;font-size:13px;cursor:pointer;font-family:'Epilogue',sans-serif;transition:all .2s}
+.try-again:hover{border-color:var(--accent);background:var(--accent-lt)}
+
+/* ── UPGRADE MODAL ── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(26,24,20,0.55);z-index:500;align-items:center;justify-content:center;padding:20px}
+.modal-bg.open{display:flex}
+.modal{background:var(--bg2);border-radius:20px;padding:30px;max-width:420px;width:100%;box-shadow:0 24px 60px rgba(26,24,20,0.18)}
+.modal-title{font-family:'Syne',sans-serif;font-size:21px;font-weight:700;letter-spacing:-0.5px;margin-bottom:7px}
+.modal-sub{font-size:13px;color:var(--ink2);margin-bottom:22px;line-height:1.65}
+.plan{border:1.5px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:9px;cursor:pointer;transition:all .15s}
+.plan:hover,.plan.sel{border-color:var(--accent);background:rgba(45,106,79,0.03)}
+.plan-row{display:flex;justify-content:space-between;align-items:center}
+.plan-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:600}
+.plan-price{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--accent)}
+.plan-feats{font-size:12px;color:var(--ink2);margin-top:5px;line-height:1.55}
+.modal-btn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:99px;padding:13px;font-size:14px;font-weight:500;cursor:pointer;font-family:'Epilogue',sans-serif;margin-top:14px;transition:all .2s}
+.modal-btn:hover{background:var(--accent2)}
+.modal-close{font-size:12px;color:var(--ink3);text-align:center;margin-top:11px;cursor:pointer}
+.modal-close:hover{color:var(--ink)}
+
+/* ── CONTACT ── */
+.contact{background:var(--bg2);border-top:1px solid var(--border);padding:64px 48px}
+.contact-inner{max-width:1060px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start}
+.contact-left{}
+.contact-title{font-family:'Syne',sans-serif;font-size:26px;font-weight:700;letter-spacing:-0.5px;margin-bottom:10px}
+.contact-desc{font-size:14px;color:var(--ink2);line-height:1.75;margin-bottom:28px}
+.contact-items{display:flex;flex-direction:column;gap:14px}
+.ci{display:flex;align-items:center;gap:12px}
+.ci-icon{width:36px;height:36px;border-radius:var(--r-sm);background:var(--accent-lt);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ci-icon svg{width:16px;height:16px;stroke:var(--accent)}
+.ci-label{font-size:11px;color:var(--ink3);margin-bottom:1px}
+.ci-value{font-size:13px;color:var(--ink);font-weight:500}
+.ci-value a{color:var(--ink);text-decoration:none}
+.ci-value a:hover{color:var(--accent)}
+.contact-form{}
+.cf-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:600;margin-bottom:16px}
+.cf-field{margin-bottom:12px}
+.cf-lbl{font-size:12px;color:var(--ink2);margin-bottom:5px;display:block;font-weight:500}
+.cf-inp{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 13px;font-size:13px;color:var(--ink);font-family:'Epilogue',sans-serif;outline:none;transition:border-color .2s}
+.cf-inp:focus{border-color:var(--accent)}
+.cf-ta{height:90px;resize:none}
+.cf-btn{background:var(--accent);color:#fff;border:none;border-radius:99px;padding:12px 24px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Epilogue',sans-serif;transition:all .2s}
+.cf-btn:hover{background:var(--accent2)}
+.cf-success{display:none;background:var(--accent-lt);border:1px solid rgba(45,106,79,0.25);border-radius:var(--r-sm);padding:12px 15px;font-size:13px;color:var(--accent);margin-top:10px}
+
+/* ── FOOTER ── */
+footer{border-top:1px solid var(--border);padding:24px 48px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.footer-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:var(--ink);display:flex;align-items:center;gap:6px}
+.footer-logo-dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.footer-links{display:flex;gap:20px}
+.footer-links a{font-size:12px;color:var(--ink3);text-decoration:none;transition:color .15s}
+.footer-links a:hover{color:var(--ink)}
+.footer-right{font-size:12px;color:var(--ink3)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .hero{grid-template-columns:1fr;gap:32px;padding:40px 24px 36px}
+  .hv{display:none}
+  .how{padding:40px 24px}
+  .steps{grid-template-columns:1fr}
+  .scan{padding:40px 24px 60px}
+  .contact-inner{grid-template-columns:1fr}
+  .contact{padding:40px 24px}
+  footer{padding:20px 24px}
+  nav{padding:14px 20px}
+  .nav-links{display:none}
+  .hamburger{display:flex}
+  .rg{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ NAVBAR ══ -->
+<nav>
+  <a href="#" class="logo"><div class="logo-dot"></div>DermBot</a>
+  <div class="nav-links">
+    <a href="#how">How it works</a>
+    <a href="#scan">Analyze skin</a>
+    <a href="#contact">Contact</a>
+  </div>
+  <div class="nav-right">
+    <div class="scan-badge">Free scans: <span id="scans-left">3</span></div>
+    <button class="btn-upgrade" onclick="openUpgrade()">Upgrade Pro</button>
+  </div>
+  <div class="hamburger" onclick="toggleMenu()" id="hamburger">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+<div class="mobile-menu" id="mobile-menu">
+  <a href="#how" onclick="closeMenu()">How it works</a>
+  <a href="#scan" onclick="closeMenu()">Analyze skin</a>
+  <a href="#contact" onclick="closeMenu()">Contact</a>
+  <a href="#" onclick="openUpgrade();closeMenu()">Upgrade Pro</a>
+</div>
+
+<!-- ══ HERO ══ -->
+<section class="hero" id="home">
+  <div class="fu">
+    <div class="eyebrow"><div class="eyebrow-dot"></div>AI-Powered Skin Intelligence</div>
+    <h1>Your personal<br><span class="green">skin coach.</span><br>Always on.</h1>
+    <p class="hero-p">Upload a photo, describe your concern — get clear, science-backed skincare guidance in seconds. Built for South Asia. Works worldwide.</p>
+    <div class="hero-stats">
+      <div><div class="hs-num">10s</div><div class="hs-lbl">Analysis time</div></div>
+      <div><div class="hs-num">Free</div><div class="hs-lbl">3 scans/month</div></div>
+      <div><div class="hs-num">Safe</div><div class="hs-lbl">OTC-only advice</div></div>
+    </div>
+    <div class="hero-btns">
+      <a href="#scan" class="btn-main">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Analyze my skin
+      </a>
+      <a href="#how" class="btn-ghost">How it works</a>
+    </div>
+  </div>
+  <div class="hv fu2">
+    <div class="hv-lbl">Sample AI analysis</div>
+    <div class="hv-bars">
+      <div class="hv-bar-row"><div class="hv-bar-lbl">Inflammation</div><div class="hv-track"><div class="hv-fill" style="width:0%;background:#e76f51" data-w="45"></div></div></div>
+      <div class="hv-bar-row"><div class="hv-bar-lbl">Oil level</div><div class="hv-track"><div class="hv-fill" style="width:0%;background:#b5882d" data-w="70"></div></div></div>
+      <div class="hv-bar-row"><div class="hv-bar-lbl">Hydration</div><div class="hv-track"><div class="hv-fill" style="width:0%;background:#2d6a4f" data-w="35"></div></div></div>
+      <div class="hv-bar-row"><div class="hv-bar-lbl">Sensitivity</div><div class="hv-track"><div class="hv-fill" style="width:0%;background:#2d6a4f" data-w="22"></div></div></div>
+    </div>
+    <div class="hv-div"></div>
+    <div class="hv-row"><div class="hv-cond">Mild inflammatory acne</div><div class="hv-sev">Mild</div></div>
+    <div class="hv-ings">
+      <div class="hv-ing">Niacinamide 10%</div><div class="hv-ing">Salicylic acid 2%</div>
+      <div class="hv-ing">SPF 30+</div><div class="hv-ing">CeraVe cleanser</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ HOW IT WORKS ══ -->
+<section class="how fu3" id="how">
+  <div class="section-h">How DermBot works</div>
+  <div class="section-sub">Three simple steps to understand your skin</div>
+  <div class="steps">
+    <div class="step-card">
+      <div class="step-num">01</div>
+      <div class="step-title">Upload your photo</div>
+      <div class="step-desc">Take a clear, well-lit photo of the affected area and drag it into DermBot. No account needed.</div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">02</div>
+      <div class="step-title">Describe your concern</div>
+      <div class="step-desc">Tell us what you're experiencing — how long, what products you use, your skin type. Tap quick tags for speed.</div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">03</div>
+      <div class="step-title">Get your routine</div>
+      <div class="step-desc">Receive a personalized AM/PM skincare routine with safe, evidence-based ingredients in under 10 seconds.</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><hr></div>
+
+<!-- ══ SCAN ══ -->
+<section class="scan fu4" id="scan">
+  <div class="scan-title">Analyze your skin</div>
+  <div class="scan-sub">Take a clear, well-lit photo of the affected area. No makeup please.</div>
+
+  <!-- UPLOAD -->
+  <div class="upload-zone" id="uz">
+    <input type="file" id="fi" accept="image/*" onchange="onFile(this)">
+    <div class="up-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+    <div class="up-t">Drop photo here or click to upload</div>
+    <div class="up-s">Make sure the area is well lit and in focus</div>
+    <div class="up-fmt">JPG · PNG · WEBP — max 10MB</div>
+  </div>
+  <div id="prev-wrap">
+    <img id="prev-img" alt="Uploaded photo">
+    <div><span class="prev-change" onclick="resetUpload()">Change photo</span></div>
+  </div>
+
+  <!-- SYMPTOMS -->
+  <div class="form-card">
+    <div class="fc-title">What are you experiencing?</div>
+    <div class="tags-row">
+      <span class="qtag" onclick="tag(this,'Acne / pimples')">Acne / pimples</span>
+      <span class="qtag" onclick="tag(this,'Oily skin')">Oily skin</span>
+      <span class="qtag" onclick="tag(this,'Blackheads')">Blackheads</span>
+      <span class="qtag" onclick="tag(this,'Dry skin')">Dry skin</span>
+      <span class="qtag" onclick="tag(this,'Dark spots')">Dark spots</span>
+      <span class="qtag" onclick="tag(this,'Redness')">Redness</span>
+      <span class="qtag" onclick="tag(this,'Clogged pores')">Clogged pores</span>
+      <span class="qtag" onclick="tag(this,'Sensitive skin')">Sensitive skin</span>
+    </div>
+    <textarea class="sym-ta" id="sym" placeholder="Describe in your own words — how long, what products you use, your diet, stress level..."></textarea>
+  </div>
+
+  <button class="analyze-btn" id="abtn" onclick="analyze()" disabled>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    Analyze my skin — Free
+  </button>
+
+  <!-- LOADING -->
+  <div id="loading">
+    <div class="load-ring"></div>
+    <div style="font-size:14px;color:var(--ink2)">Analyzing your skin...</div>
+    <div class="load-steps">
+      <div class="load-step active" id="ls1">Reading skin photo</div>
+      <div class="load-step" id="ls2">Identifying condition</div>
+      <div class="load-step" id="ls3">Building your routine</div>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="result">
+    <div class="res-card">
+      <div class="res-top">
+        <div class="res-cond" id="r-cond">—</div>
+        <div class="sev-pill sev-mild" id="r-sev">Mild</div>
+      </div>
+      <div class="res-body">
+        <div><div class="rs-lbl">What's going on</div><div class="rs-text" id="r-exp"></div></div>
+        <div><div class="rs-lbl">Likely triggers</div><div class="rs-text" id="r-trig"></div></div>
+        <div>
+          <div class="rs-lbl">Your personalized routine</div>
+          <div class="rg">
+            <div class="rc"><div class="rc-t">Morning</div><div id="r-am"></div></div>
+            <div class="rc"><div class="rc-t">Night</div><div id="r-pm"></div></div>
+          </div>
+        </div>
+        <div><div class="rs-lbl">Safe ingredients to use</div><div class="ing-row" id="r-use"></div></div>
+        <div><div class="rs-lbl">Avoid these ingredients</div><div class="ing-row" id="r-avoid"></div></div>
+        <div>
+          <div class="rs-lbl">When to see a dermatologist</div>
+          <div class="doc-box">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5" style="flex-shrink:0;margin-top:2px"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <div id="r-doc"></div>
+          </div>
+        </div>
+        <div class="res-disc">DermBot provides educational skin guidance only — not a medical diagnosis.<br>Always consult a qualified dermatologist for serious skin conditions.</div>
+      </div>
+    </div>
+    <button class="try-again" onclick="resetAll()">Analyze another photo</button>
+  </div>
+</section>
+
+<!-- ══ UPGRADE MODAL ══ -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <div class="modal-title">Upgrade to Pro</div>
+    <div class="modal-sub">You've used your 3 free scans. Upgrade for unlimited access and advanced features.</div>
+    <div class="plan sel">
+      <div class="plan-row"><div class="plan-name">Pro Monthly</div><div class="plan-price">PKR 299<span style="font-size:12px;font-weight:400;color:var(--ink2)">/mo</span></div></div>
+      <div class="plan-feats">Unlimited scans · Detailed analysis · Progress tracking · Priority AI</div>
+    </div>
+    <div class="plan">
+      <div class="plan-row"><div class="plan-name">Pro Yearly</div><div class="plan-price">PKR 1,999<span style="font-size:12px;font-weight:400;color:var(--ink2)">/yr</span></div></div>
+      <div class="plan-feats">Everything in Monthly · Save 44% · Early access features</div>
+    </div>
+    <button class="modal-btn" onclick="contactForUpgrade()">Contact to upgrade</button>
+    <div class="modal-close" onclick="closeUpgrade()">Maybe later</div>
+  </div>
+</div>
+
+<!-- ══ CONTACT ══ -->
+<section class="contact" id="contact">
+  <div class="contact-inner">
+    <div class="contact-left">
+      <div class="section-h">Get in touch</div>
+      <p class="contact-desc">Have questions about DermBot, want to upgrade to Pro, or need help with your skin analysis? Reach out directly — we respond fast.</p>
+      <div class="contact-items">
+        <div class="ci">
+          <div class="ci-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+          <div><div class="ci-label">Developer</div><div class="ci-value">Hassan Mujtaba</div></div>
+        </div>
+        <div class="ci">
+          <div class="ci-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+          <div><div class="ci-label">Email</div><div class="ci-value"><a href="mailto:hassanmujtabamemon123@gmail.com">hassanmujtabamemon123@gmail.com</a></div></div>
+        </div>
+        <div class="ci">
+          <div class="ci-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.1 1.18 2 2 0 012.18 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.18 6.18l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg></div>
+          <div><div class="ci-label">WhatsApp / Phone</div><div class="ci-value"><a href="https://wa.me/923013210166">+92 301 321 0166</a></div></div>
+        </div>
+        <div class="ci">
+          <div class="ci-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+          <div><div class="ci-label">Location</div><div class="ci-value">Pakistan · South Asia</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="contact-form">
+      <div class="cf-title">Send a message</div>
+      <div class="cf-field"><label class="cf-lbl">Your name</label><input class="cf-inp" id="cf-name" type="text" placeholder="Ali Ahmed"></div>
+      <div class="cf-field"><label class="cf-lbl">Email address</label><input class="cf-inp" id="cf-email" type="email" placeholder="ali@example.com"></div>
+      <div class="cf-field"><label class="cf-lbl">Message</label><textarea class="cf-inp cf-ta" id="cf-msg" placeholder="I want to upgrade to Pro / I have a question about..."></textarea></div>
+      <button class="cf-btn" onclick="sendContact()">Send message</button>
+      <div class="cf-success" id="cf-success">Message sent! Hassan will get back to you soon.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <div class="footer-logo"><div class="footer-logo-dot"></div>DermBot</div>
+  <div class="footer-links">
+    <a href="#home">Home</a>
+    <a href="#how">How it works</a>
+    <a href="#scan">Analyze</a>
+    <a href="#contact">Contact</a>
+  </div>
+  <div class="footer-right">Built by Hassan Mujtaba &copy; 2025</div>
+</footer>
+
+<script>
+// ── STATE ──
+let b64=null, fType='image/jpeg', activeTags=[];
+const FREE=3;
+
+// ── SCANS ──
+function getUsed(){return parseInt(localStorage.getItem('db_used')||'0');}
+function addUsed(){localStorage.setItem('db_used',getUsed()+1);updateBadge();}
+function updateBadge(){
+  const left=Math.max(0,FREE-getUsed());
+  document.getElementById('scans-left').textContent=left;
+  const btn=document.getElementById('abtn');
+  if(btn&&!btn.disabled) btn.textContent=left>0?`Analyze my skin — ${left} free scan${left!==1?'s':''} left`:'Upgrade required';
+}
+
+// ── MOBILE MENU ──
+function toggleMenu(){document.getElementById('mobile-menu').classList.toggle('open');}
+function closeMenu(){document.getElementById('mobile-menu').classList.remove('open');}
+
+// ── HERO BARS ANIMATE ──
+window.addEventListener('load',()=>{
+  updateBadge();
+  setTimeout(()=>{
+    document.querySelectorAll('.hv-fill').forEach(b=>{
+      b.style.width=b.dataset.w+'%';
+    });
+  },400);
+});
+
+// ── UPLOAD ──
+function onFile(inp){
+  const f=inp.files[0];if(!f)return;
+  fType=f.type||'image/jpeg';
+  const r=new FileReader();
+  r.onload=e=>{
+    b64=e.target.result.split(',')[1];
+    document.getElementById('prev-img').src=e.target.result;
+    document.getElementById('prev-wrap').style.display='block';
+    document.getElementById('uz').style.display='none';
+    updateBadge();
+    document.getElementById('abtn').disabled=false;
+  };
+  r.readAsDataURL(f);
+}
+function resetUpload(){
+  b64=null;
+  document.getElementById('prev-wrap').style.display='none';
+  document.getElementById('uz').style.display='block';
+  document.getElementById('fi').value='';
+  document.getElementById('abtn').disabled=true;
+}
+const uz=document.getElementById('uz');
+uz.addEventListener('dragover',e=>{e.preventDefault();uz.classList.add('over');});
+uz.addEventListener('dragleave',()=>uz.classList.remove('over'));
+uz.addEventListener('drop',e=>{
+  e.preventDefault();uz.classList.remove('over');
+  const f=e.dataTransfer.files[0];
+  if(f&&f.type.startsWith('image/')){
+    const dt=new DataTransfer();dt.items.add(f);
+    document.getElementById('fi').files=dt.files;onFile(document.getElementById('fi'));
+  }
+});
+
+// ── TAGS ──
+function tag(el,label){
+  el.classList.toggle('on');
+  if(activeTags.includes(label)){activeTags=activeTags.filter(t=>t!==label);}
+  else{activeTags.push(label);const ta=document.getElementById('sym');if(ta.value&&!ta.value.endsWith(' '))ta.value+=', ';ta.value+=label;}
+}
+
+// ── LOADING STEPS ──
+function startLoading(){
+  const ids=['ls1','ls2','ls3'];let i=0;
+  ids.forEach(id=>document.getElementById(id).classList.remove('active'));
+  document.getElementById(ids[0]).classList.add('active');
+  return setInterval(()=>{
+    ids.forEach(id=>document.getElementById(id).classList.remove('active'));
+    document.getElementById(ids[i%3]).classList.add('active');
+    i++;
+  },1400);
+}
+
+// ── ANALYZE ──
+async function analyze(){
+  if(!b64){alert('Please upload a photo first.');return;}
+  if(getUsed()>=FREE&&localStorage.getItem('db_pro')!=='1'){openUpgrade();return;}
+
+  document.getElementById('abtn').style.display='none';
+  document.getElementById('loading').style.display='block';
+  document.getElementById('result').style.display='none';
+  clearError();
+  const timer=startLoading();
+
+  const sym=document.getElementById('sym').value.trim();
+
+  try{
+    // ── Call PHP backend (API key stays server-side) ──
+    const res=await fetch('api/analyze.php',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({image:b64, mime:fType, symptoms:sym})
+    });
+    const data=await res.json();
+    clearInterval(timer);
+
+    if(data.error==='rate_limit'){
+      document.getElementById('loading').style.display='none';
+      document.getElementById('abtn').style.display='flex';
+      openUpgrade(); return;
+    }
+    if(data.error){
+      document.getElementById('loading').style.display='none';
+      document.getElementById('abtn').style.display='flex';
+      showError(data.error); return;
+    }
+    if(data.not_skin){
+      document.getElementById('loading').style.display='none';
+      document.getElementById('abtn').style.display='flex';
+      showNotSkin(data.message); return;
+    }
+
+    displayResult(data);
+    addUsed();
+
+    // Update badge after use
+    if(data.scans_remaining!==undefined){
+      document.getElementById('scans-left').textContent=data.scans_remaining;
+    }
+
+  }catch(e){
+    clearInterval(timer);
+    document.getElementById('loading').style.display='none';
+    document.getElementById('abtn').style.display='flex';
+    showError('Network error — make sure the app is running on a server (not just opened as a file).');
+  }
+}
+
+// ── DISPLAY RESULT ──
+function displayResult(r){
+  document.getElementById('loading').style.display='none';
+  const sev=(r.severity||'mild').toLowerCase();
+  document.getElementById('r-cond').textContent=r.condition||'Analysis complete';
+  const sevEl=document.getElementById('r-sev');
+  sevEl.textContent=sev.charAt(0).toUpperCase()+sev.slice(1);
+  sevEl.className='sev-pill sev-'+sev;
+  document.getElementById('r-exp').textContent=r.explanation||'';
+  document.getElementById('r-trig').textContent=r.triggers||'';
+  const am=document.getElementById('r-am'),pm=document.getElementById('r-pm');
+  am.innerHTML='';pm.innerHTML='';
+  (r.routine_am||[]).forEach((s,i)=>am.innerHTML+=`<div class="step-item"><div class="sn">${i+1}</div><span>${s}</span></div>`);
+  (r.routine_pm||[]).forEach((s,i)=>pm.innerHTML+=`<div class="step-item"><div class="sn">${i+1}</div><span>${s}</span></div>`);
+  const ue=document.getElementById('r-use'),ae=document.getElementById('r-avoid');
+  ue.innerHTML='';ae.innerHTML='';
+  (r.use||[]).forEach(x=>ue.innerHTML+=`<span class="ing">${x}</span>`);
+  (r.avoid||[]).forEach(x=>ae.innerHTML+=`<span class="ing ing-bad">${x}</span>`);
+  document.getElementById('r-doc').textContent=r.doctor||'Consult a dermatologist if condition worsens or does not improve in 8 weeks.';
+  document.getElementById('result').style.display='block';
+  document.getElementById('result').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ── ERRORS ──
+function clearError(){const e=document.getElementById('err-box');if(e)e.remove();}
+function showNotSkin(msg){
+  clearError();
+  const b=document.createElement('div');b.id='err-box';
+  b.style.cssText='background:var(--warm-lt);border:1px solid rgba(231,111,81,0.3);border-radius:var(--r);padding:16px 18px;margin-top:14px;display:flex;gap:10px;align-items:flex-start';
+  b.innerHTML=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--warm)" stroke-width="2" style="flex-shrink:0;margin-top:2px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div><div style="font-size:13px;font-weight:500;color:var(--warm);margin-bottom:3px">Not a skin photo</div><div style="font-size:13px;color:var(--ink2);line-height:1.6">${msg}</div></div>`;
+  document.getElementById('abtn').insertAdjacentElement('afterend',b);
+}
+function showError(msg){
+  clearError();
+  const b=document.createElement('div');b.id='err-box';
+  b.style.cssText='background:var(--warm-lt);border:1px solid rgba(231,111,81,0.3);border-radius:var(--r);padding:16px 18px;margin-top:14px;display:flex;gap:10px;align-items:flex-start';
+  b.innerHTML=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--warm)" stroke-width="2" style="flex-shrink:0;margin-top:2px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div><div style="font-size:13px;font-weight:500;color:var(--warm);margin-bottom:3px">Error</div><div style="font-size:13px;color:var(--ink2);line-height:1.6">${msg}</div></div>`;
+  document.getElementById('abtn').insertAdjacentElement('afterend',b);
+}
+
+// ── RESET ──
+function resetAll(){
+  resetUpload();
+  document.getElementById('sym').value='';
+  activeTags=[];
+  document.querySelectorAll('.qtag').forEach(t=>t.classList.remove('on'));
+  document.getElementById('result').style.display='none';
+  document.getElementById('abtn').style.display='flex';
+  clearError();
+  document.getElementById('scan').scrollIntoView({behavior:'smooth'});
+}
+
+// ── MODAL ──
+function openUpgrade(){document.getElementById('modal').classList.add('open');}
+function closeUpgrade(){document.getElementById('modal').classList.remove('open');}
+function contactForUpgrade(){closeUpgrade();document.getElementById('contact').scrollIntoView({behavior:'smooth'});document.getElementById('cf-msg').value='I want to upgrade to DermBot Pro. Please tell me how to pay.';}
+
+// ── CONTACT FORM ──
+function sendContact(){
+  const name=document.getElementById('cf-name').value.trim();
+  const email=document.getElementById('cf-email').value.trim();
+  const msg=document.getElementById('cf-msg').value.trim();
+  if(!name||!email||!msg){alert('Please fill all fields.');return;}
+  // Opens mail client — no server needed
+  const subject=encodeURIComponent('DermBot Inquiry from '+name);
+  const body=encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\nMessage:\n${msg}`);
+  window.location.href=`mailto:hassanmujtabamemon123@gmail.com?subject=${subject}&body=${body}`;
+  document.getElementById('cf-success').style.display='block';
+}
+</script>
+</body>
+</html>
